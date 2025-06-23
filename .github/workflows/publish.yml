@@ -1,0 +1,38 @@
+name: Build and Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"  # Only runs when you push tags like v1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: |
+          pip install build twine
+
+      - name: Build the package
+        run: python -m build
+
+      - name: Upload dist folder as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-package
+          path: dist/
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
